@@ -1,0 +1,13 @@
+I think I've found the answer myself. If somebody finds this question, here's my answer.
+
+How does Spring manage Hibernate Sessions?
+
+By default, Spring Boot applies transaction management at the repository level. In this case, when calling a JpaRepository method (or in general any Repository method), Spring will:
+
+Ask the SessionFactory to create a new session
+Open this session
+Open a transaction
+Perform the called Repository method
+Close the transaction
+Close the session
+However, if you apply @Transactional to the service class or method, Spring will open the session and the transaction on entry to the service method, and the repository method will be performed within the existing transaction.

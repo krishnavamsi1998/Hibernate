@@ -1,0 +1,29 @@
+You go to a market for shopping. This means you have created a session in market.
+
+Now you are going to a shopkeeper to purchase item X. Here your transaction starts, you pick the item, pay the amount to the shopkeeper, get the change back and keep it in your pocket and leave the shop with item X. Your transaction is over.
+
+You are still in the market, so your session is still alive.
+
+You go to another shop or same shop to purchase item Y or Z. you are starting another transaction in the same session.
+
+Session will end once you leave the market.
+
+You logged in (created a session).
+
+Transaction:
+
+Searched for the items and picked one item, provided shipping and billing details, paid the amout, and checkout. 
+
+Transaction Over.
+
+You have done another shopping in the same manner
+
+Another transaction over.
+
+You logged out.
+
+Session Ends
+
+Same works with hibernate/jpa/database or any other computer programming.
+
+Note: JPA do not have session, entitymanager acts as session. 
