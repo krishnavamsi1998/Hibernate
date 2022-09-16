@@ -1,0 +1,83 @@
+Main diff : get returns null, load throws exception
+why ?
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+
+import com.journaldev.hibernate.model.Employee;
+import com.journaldev.hibernate.util.HibernateUtil;
+
+public class HibernateGetVsLoad {
+
+	public static void main(String[] args) {
+		
+		//Prep Work
+		SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+		Session session = sessionFactory.openSession();
+		Transaction tx = session.beginTransaction();
+		
+		//Get Example
+		Employee emp = (Employee) session.get(Employee.class, new Long(2));
+		System.out.println("Employee get called");
+		System.out.println("Employee ID= "+emp.getId());
+		System.out.println("Employee Get Details:: "+emp+"\n");
+		
+		//load Example
+		Employee emp1 = (Employee) session.load(Employee.class, new Long(1));
+		System.out.println("Employee load called");
+		System.out.println("Employee ID= "+emp1.getId());
+		System.out.println("Employee load Details:: "+emp1+"\n");
+		
+		//Close resources
+		tx.commit();
+		sessionFactory.close();
+	}
+}
+When I execute above code, it produces following output.
+
+Hibernate: select employee0_.emp_id as emp_id1_1_0_, employee0_.emp_name as emp_name2_1_0_, employee0_.emp_salary as emp_sala3_1_0_, address1_.emp_id as emp_id1_0_1_, address1_.address_line1 as address_2_0_1_, address1_.city as city3_0_1_, address1_.zipcode as zipcode4_0_1_ from EMPLOYEE employee0_ left outer join ADDRESS address1_ on employee0_.emp_id=address1_.emp_id where employee0_.emp_id=?
+Employee get called
+Employee ID= 2
+Employee Get Details:: Id= 2, Name= David, Salary= 200.0, {Address= AddressLine1= Arques Ave, City=Santa Clara, Zipcode=95051}
+
+Employee load called
+Employee ID= 1
+Hibernate: select employee0_.emp_id as emp_id1_1_0_, employee0_.emp_name as emp_name2_1_0_, employee0_.emp_salary as emp_sala3_1_0_, address1_.emp_id as emp_id1_0_1_, address1_.address_line1 as address_2_0_1_, address1_.city as city3_0_1_, address1_.zipcode as zipcode4_0_1_ from EMPLOYEE employee0_ left outer join ADDRESS address1_ on employee0_.emp_id=address1_.emp_id where employee0_.emp_id=?
+Employee load Details:: Id= 1, Name= Pankaj, Salary= 100.0, {Address= AddressLine1= Albany Dr, City=San Jose, Zipcode=95129}
+
+//Get Example
+try{
+Employee emp = (Employee) session.get(Employee.class, new Long(200));
+System.out.println("Employee get called");
+if(emp != null){
+System.out.println("Employee GET ID= "+emp.getId());
+System.out.println("Employee Get Details:: "+emp+"\n");
+}
+}catch(Exception e){
+	e.printStackTrace();
+}
+
+//load Example
+try{
+Employee emp1 = (Employee) session.load(Employee.class, new Long(100));
+System.out.println("Employee load called");
+System.out.println("Employee LOAD ID= "+emp1.getId());
+System.out.println("Employee load Details:: "+emp1+"\n");
+}catch(Exception e){
+	e.printStackTrace();
+}
+
+Hibernate: select employee0_.emp_id as emp_id1_1_0_, employee0_.emp_name as emp_name2_1_0_, employee0_.emp_salary as emp_sala3_1_0_, address1_.emp_id as emp_id1_0_1_, address1_.address_line1 as address_2_0_1_, address1_.city as city3_0_1_, address1_.zipcode as zipcode4_0_1_ from EMPLOYEE employee0_ left outer join ADDRESS address1_ on employee0_.emp_id=address1_.emp_id where employee0_.emp_id=?
+Employee get called
+Employee load called
+Employee LOAD ID= 10
+Hibernate: select employee0_.emp_id as emp_id1_1_0_, employee0_.emp_name as emp_name2_1_0_, employee0_.emp_salary as emp_sala3_1_0_, address1_.emp_id as emp_id1_0_1_, address1_.address_line1 as address_2_0_1_, address1_.city as city3_0_1_, address1_.zipcode as zipcode4_0_1_ from EMPLOYEE employee0_ left outer join ADDRESS address1_ on employee0_.emp_id=address1_.emp_id where employee0_.emp_id=?
+
+org.hibernate.ObjectNotFoundException
+
+
+
+*From the output it’s clear that get() returns the object by fetching it from database or from hibernate cache whereas load() just returns the reference of an object that might not actually exists, it loads the data from database or cache only when you access other properties of the object. Now let’s try to fetch data that doesn’t exists in the database.
+
+ when we use get() to retrieve data that doesn’t exists, it returns null. That makes sense because it try to load the data as soon as it’s called. With load(), we are able to print the id but as soon as we try to access other fields, it fires database query and throws org.hibernate.ObjectNotFoundException if there is no record found with the given identifier.
